@@ -1,0 +1,78 @@
+/* =====================================================
+   assets/css/style.css — Custom Styles (Xpense Tracker)
+   Tambahan di luar Tailwind CSS
+   ===================================================== */
+
+/* ---- Base ---- */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ---- Flatpickr Dark Theme Override ---- */
+.flatpickr-calendar {
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6) !important;
+    border-radius: 12px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-months {
+    background: #1e293b !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+.flatpickr-month, .flatpickr-weekday,
+.flatpickr-current-month, .flatpickr-current-month .cur-month {
+    color: #f1f5f9 !important;
+    fill: #f1f5f9 !important;
+}
+.flatpickr-prev-month svg, .flatpickr-next-month svg { fill: #94a3b8 !important; }
+.flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: #818cf8 !important; }
+.flatpickr-day { color: #cbd5e1 !important; border-radius: 8px !important; }
+.flatpickr-day:hover { background: #334155 !important; border-color: #334155 !important; }
+.flatpickr-day.selected, .flatpickr-day.selected:hover {
+    background: #6366f1 !important;
+    border-color: #6366f1 !important;
+    color: #fff !important;
+}
+.flatpickr-day.today { border-color: #6366f1 !important; color: #818cf8 !important; }
+.flatpickr-day.flatpickr-disabled { color: #475569 !important; }
+.flatpickr-weekdays { background: #1e293b !important; }
+
+/* ---- Jenis Radio Card Active State ---- */
+.jenis-option input[type="radio"]:checked + .jenis-card {
+    border-color: transparent !important;
+    background: #1e1b4b !important;
+}
+.jenis-option:first-child input[type="radio"]:checked + .jenis-card {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+}
+.jenis-option:last-child input[type="radio"]:checked + .jenis-card {
+    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* ---- Upload Area Drag Hover ---- */
+#upload-area.drag-over {
+    border-color: #6366f1 !important;
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* ---- Flash Message Auto-fade ---- */
+.flash-msg {
+    animation: fadeInDown 0.35s ease-out both;
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Scrollbar (webkit) ---- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ---- Table truncate ellipsis ---- */
+.max-w-xs.truncate { max-width: 200px; }
+
+/* ---- Smooth transitions ---- */
+a, button { transition-property: color, background-color, border-color, box-shadow; transition-duration: 150ms; }

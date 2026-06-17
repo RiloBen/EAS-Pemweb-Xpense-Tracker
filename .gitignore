@@ -1,0 +1,55 @@
+# =====================================================
+# .gitignore — Xpense Tracker
+# =====================================================
+
+# -----------------------------------------------
+# KRITIS: File konfigurasi berisi kredensial
+# -----------------------------------------------
+config/database.php
+
+# -----------------------------------------------
+# Foto nota yang diupload pengguna
+# (jangan commit konten uploads/, hanya .gitkeep)
+# -----------------------------------------------
+uploads/*
+!uploads/.gitkeep
+
+# -----------------------------------------------
+# Environment & secrets (jika suatu saat pakai .env)
+# -----------------------------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------------------------
+# Editor & IDE
+# -----------------------------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+.history/
+
+# -----------------------------------------------
+# OS generated files
+# -----------------------------------------------
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# -----------------------------------------------
+# Logs & cache
+# -----------------------------------------------
+*.log
+/logs/
+/cache/
+/tmp/
+
+# -----------------------------------------------
+# Composer (jika nanti digunakan)
+# -----------------------------------------------
+/vendor/
+composer.lock

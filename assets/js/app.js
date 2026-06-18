@@ -22,6 +22,32 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --------------------------------------------------
+    // 1b. Flatpickr monthSelect — Filter bulan di dashboard
+    // --------------------------------------------------
+    const filterBulanInput = document.getElementById('filter-bulan');
+    if (filterBulanInput && typeof flatpickr !== 'undefined' && typeof monthSelectPlugin !== 'undefined') {
+        flatpickr(filterBulanInput, {
+            plugins: [
+                new monthSelectPlugin({
+                    shorthand  : false,      // tampilkan nama bulan penuh
+                    dateFormat : 'Y-m',      // format dikirim ke server: "2026-06"
+                    altFormat  : 'F Y',      // tampilan di input: "Juni 2026"
+                    theme      : 'dark'      // sesuai tema aplikasi
+                })
+            ],
+            locale      : 'id',
+            defaultDate : filterBulanInput.value || new Date(),
+            // Auto-submit form ketika bulan dipilih
+            onChange: function (selectedDates, dateStr) {
+                if (dateStr) {
+                    filterBulanInput.closest('form').submit();
+                }
+            }
+        });
+    }
+
+
+    // --------------------------------------------------
     // 2. Preview Foto Nota
     // --------------------------------------------------
     const fileInput       = document.getElementById('foto_nota');

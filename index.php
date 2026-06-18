@@ -8,12 +8,23 @@ requireLogin();
 
 $userId = (int) $currentUser['id'];
 $limit  = 10;
-$bulan  = date('m');
-$tahun  = date('Y');
 
 // ---- Sanitasi Input ----
 $search = trim($_GET['search'] ?? '');
 $page   = max(1, intval($_GET['page'] ?? 1));
+
+// ---- Filter Bulan & Tahun (dari Flatpickr monthSelect) ----
+// Format GET: bulan_filter = "2026-06"
+$filterBulanParam = trim($_GET['bulan_filter'] ?? '');
+if (!empty($filterBulanParam) && preg_match('/^\d{4}-\d{2}$/', $filterBulanParam)) {
+    [$tahun, $bulan] = explode('-', $filterBulanParam);
+    $tahun = (int) $tahun;
+    $bulan = (int) $bulan;
+} else {
+    $bulan            = (int) date('m');
+    $tahun            = (int) date('Y');
+    $filterBulanParam = date('Y-m'); // default: bulan ini
+}
 
 // ---- Kartu Ringkasan Bulan Berjalan ----
 $stmtSum = mysqli_prepare($conn,
@@ -30,11 +41,13 @@ $totalPengeluaran = (float) $sumRow['total_pengeluaran'];
 $sisaSaldo       = $totalPendapatan - $totalPengeluaran;
 mysqli_stmt_close($stmtSum);
 
-// ---- Hitung Total Data (dengan filter search) ----
+// ---- Hitung Total Data (dengan filter search + bulan/tahun) ----
 $searchParam = '%' . $search . '%';
 $stmtCount   = mysqli_prepare($conn,
-    "SELECT COUNT(*) AS total FROM transaksi WHERE user_id = ? AND keterangan LIKE ?");
-mysqli_stmt_bind_param($stmtCount, 'is', $userId, $searchParam);
+    "SELECT COUNT(*) AS total FROM transaksi
+     WHERE user_id = ? AND keterangan LIKE ?
+       AND MONTH(tanggal) = ? AND YEAR(tanggal) = ?");
+mysqli_stmt_bind_param($stmtCount, 'isii', $userId, $searchParam, $bulan, $tahun);
 mysqli_stmt_execute($stmtCount);
 $totalData = (int) mysqli_fetch_assoc(mysqli_stmt_get_result($stmtCount))['total'];
 mysqli_stmt_close($stmtCount);
@@ -46,13 +59,14 @@ $offset       = ($page - 1) * $limit;
 $dataMulai    = ($totalData > 0) ? $offset + 1 : 0;
 $dataSelesai  = min($offset + $limit, $totalData);
 
-// ---- Ambil Data Transaksi ----
+// ---- Ambil Data Transaksi (dengan filter bulan/tahun + search) ----
 $stmtData = mysqli_prepare($conn,
     "SELECT * FROM transaksi
      WHERE user_id = ? AND keterangan LIKE ?
+       AND MONTH(tanggal) = ? AND YEAR(tanggal) = ?
      ORDER BY tanggal DESC, created_at DESC
      LIMIT ? OFFSET ?");
-mysqli_stmt_bind_param($stmtData, 'isii', $userId, $searchParam, $limit, $offset);
+mysqli_stmt_bind_param($stmtData, 'isiiii', $userId, $searchParam, $bulan, $tahun, $limit, $offset);
 mysqli_stmt_execute($stmtData);
 $transaksiRows = mysqli_stmt_get_result($stmtData);
 
@@ -89,6 +103,10 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Flatpickr core -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Flatpickr monthSelect plugin -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <script>
         tailwind.config = {
@@ -153,7 +171,7 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
             <div>
                 <h1 class="text-2xl font-bold text-white">Dashboard</h1>
                 <p class="text-slate-400 text-sm mt-0.5">
-                    Ringkasan keuangan bulan <span class="text-indigo-400 font-medium"><?= $namaBulan[$bulan] . ' ' . $tahun ?></span>
+                    Ringkasan keuangan bulan <span class="text-indigo-400 font-medium"><?= $namaBulan[sprintf('%02d', $bulan)] . ' ' . $tahun ?></span>
                 </p>
             </div>
             <a href="tambah.php" id="btn-tambah-mobile"
@@ -211,25 +229,38 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
         <!-- Search & Table Section -->
         <div class="bg-slate-900/80 border border-slate-700/60 rounded-2xl shadow-xl overflow-hidden">
 
-            <!-- Search Bar -->
+            <!-- Search Bar + Filter Bulan -->
             <div class="p-4 sm:p-5 border-b border-slate-800">
-                <form method="GET" action="index.php" class="flex gap-3">
-                    <div class="relative flex-1">
+                <form method="GET" action="index.php" class="flex flex-wrap gap-3">
+                    <!-- Filter Bulan/Tahun (Flatpickr monthSelect) -->
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <input type="text" id="filter-bulan" name="bulan_filter"
+                            value="<?= htmlspecialchars($filterBulanParam) ?>"
+                            readonly
+                            class="pl-9 pr-4 py-2.5 w-44 bg-slate-800 border border-indigo-500/50 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all cursor-pointer"
+                            placeholder="Pilih bulan...">
+                    </div>
+                    <!-- Search Keterangan -->
+                    <div class="relative flex-1 min-w-[160px]">
                         <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                         </svg>
                         <input type="text" id="search" name="search"
                             value="<?= htmlspecialchars($search) ?>"
                             class="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all"
-                            placeholder="Cari berdasarkan keterangan...">
+                            placeholder="Cari keterangan...">
                     </div>
                     <button type="submit" id="btn-search"
                         class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-colors">
                         Cari
                     </button>
-                    <?php if ($search): ?>
+                    <?php if ($search || $filterBulanParam !== date('Y-m')): ?>
                     <a href="index.php" id="btn-reset-search"
-                        class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium rounded-xl transition-colors">
+                        class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium rounded-xl transition-colors"
+                        title="Reset ke bulan ini">
                         Reset
                     </a>
                     <?php endif; ?>
@@ -258,11 +289,19 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
+                                <?php
+                                $namaBulanFull = [
+                                    1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',
+                                    5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',
+                                    9=>'September',10=>'Oktober',11=>'November',12=>'Desember'
+                                ];
+                                $labelBulan = ($namaBulanFull[$bulan] ?? $bulan) . ' ' . $tahun;
+                                ?>
                                 <?php if ($search): ?>
-                                    <p class="font-medium">Tidak ada transaksi dengan kata kunci <span class="text-indigo-400">"<?= htmlspecialchars($search) ?>"</span></p>
+                                    <p class="font-medium">Tidak ada transaksi dengan kata kunci <span class="text-indigo-400">"<?= htmlspecialchars($search) ?>"</span> di bulan <span class="text-indigo-400"><?= $labelBulan ?></span></p>
                                 <?php else: ?>
-                                    <p class="font-medium">Belum ada transaksi</p>
-                                    <p class="text-sm mt-1">Mulai dengan <a href="tambah.php" class="text-indigo-400 hover:underline">menambah transaksi</a> pertama Anda.</p>
+                                    <p class="font-medium">Tidak ada transaksi di bulan <span class="text-indigo-400"><?= $labelBulan ?></span></p>
+                                    <p class="text-sm mt-1">Mulai dengan <a href="tambah.php" class="text-indigo-400 hover:underline">menambah transaksi</a> atau pilih bulan lain.</p>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -358,7 +397,7 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
                 <div class="flex items-center gap-1.5 order-1 sm:order-2">
                     <!-- Previous -->
                     <?php if ($page > 1): ?>
-                    <a href="<?= buildUrl(['search' => $search, 'page' => $page - 1]) ?>"
+                    <a href="<?= buildUrl(['bulan_filter' => $filterBulanParam, 'search' => $search, 'page' => $page - 1]) ?>"
                         id="btn-prev"
                         class="flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -382,7 +421,7 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
                     $startPage = max(1, $endPage - 4);
                     for ($p = $startPage; $p <= $endPage; $p++):
                     ?>
-                    <a href="<?= buildUrl(['search' => $search, 'page' => $p]) ?>"
+                    <a href="<?= buildUrl(['bulan_filter' => $filterBulanParam, 'search' => $search, 'page' => $p]) ?>"
                         id="btn-page-<?= $p ?>"
                         class="w-8 h-8 flex items-center justify-center text-xs font-medium rounded-lg transition-colors
                             <?= $p === $page
@@ -394,7 +433,7 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
 
                     <!-- Next -->
                     <?php if ($page < $totalHalaman): ?>
-                    <a href="<?= buildUrl(['search' => $search, 'page' => $page + 1]) ?>"
+                    <a href="<?= buildUrl(['bulan_filter' => $filterBulanParam, 'search' => $search, 'page' => $page + 1]) ?>"
                         id="btn-next"
                         class="flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors">
                         Berikutnya
@@ -420,6 +459,9 @@ if (isset($_GET['deleted'])) { $flashType = 'info';    $flashMsg = 'Transaksi be
         © <?= date('Y') ?> Xpense Tracker &mdash; EAS Pemrograman Web
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
 </html>

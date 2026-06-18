@@ -26,6 +26,17 @@
 .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: #94a3b8 !important; }
 .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: #818cf8 !important; }
 .flatpickr-day { color: #cbd5e1 !important; border-radius: 8px !important; }
+/* Fix: dropdown bulan di header kalender (teks putih di bg putih) */
+.flatpickr-monthDropdown-months {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+    border: none !important;
+    outline: none !important;
+}
+.flatpickr-monthDropdown-months option {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+}
 .flatpickr-day:hover { background: #334155 !important; border-color: #334155 !important; }
 .flatpickr-day.selected, .flatpickr-day.selected:hover {
     background: #6366f1 !important;
@@ -35,6 +46,30 @@
 .flatpickr-day.today { border-color: #6366f1 !important; color: #818cf8 !important; }
 .flatpickr-day.flatpickr-disabled { color: #475569 !important; }
 .flatpickr-weekdays { background: #1e293b !important; }
+
+/* ---- Flatpickr monthSelect Plugin Dark Theme ---- */
+.flatpickr-monthSelect-months {
+    background: #1e293b !important;
+}
+.flatpickr-monthSelect-month {
+    color: #cbd5e1 !important;
+    border-radius: 8px !important;
+    margin: 2px !important;
+}
+.flatpickr-monthSelect-month:hover {
+    background: #334155 !important;
+    color: #f1f5f9 !important;
+}
+.flatpickr-monthSelect-month.selected,
+.flatpickr-monthSelect-month.selected:hover {
+    background: #6366f1 !important;
+    color: #fff !important;
+}
+.flatpickr-monthSelect-month.today {
+    border-color: #6366f1 !important;
+    color: #818cf8 !important;
+}
+
 
 /* ---- Jenis Radio Card Active State ---- */
 .jenis-option input[type="radio"]:checked + .jenis-card {

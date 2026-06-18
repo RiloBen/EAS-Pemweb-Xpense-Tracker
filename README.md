@@ -55,28 +55,6 @@ Anda akan diarahkan ke halaman **Login**. Daftar akun baru terlebih dahulu melal
 
 ---
 
-## Struktur File
-
-```
-├── assets/
-│   ├── css/style.css       # Custom CSS (Flatpickr theme, animasi)
-│   └── js/app.js           # Vanilla JS: preview gambar, Flatpickr, radio cards
-├── config/
-│   ├── database.php        # Koneksi mysqli
-│   ├── database.example.php # Template koneksi mysqli (aman di-commit)
-│   └── auth.php            # Middleware session (requireLogin / redirectIfLoggedIn)
-├── uploads/                # Penyimpanan foto nota (write permission required)
-├── index.php               # Dashboard: ringkasan bulanan, tabel, search, pagination
-├── tambah.php              # Tambah transaksi baru + upload foto
-├── edit.php                # Edit transaksi + re-upload foto
-├── hapus.php               # Hapus transaksi + hapus file foto
-├── login.php               # Login pengguna
-├── register.php            # Registrasi akun baru
-├── logout.php              # Logout / destroy session
-├── database.sql            # SQL schema (import via phpMyAdmin)
-└── README.md               # File ini
-```
-
 ## Fitur
 
 | Fitur | Keterangan |

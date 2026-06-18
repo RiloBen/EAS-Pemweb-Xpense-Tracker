@@ -233,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- Foto Nota -->
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1.5">
-                            Foto Nota <span class="text-slate-500 font-normal">(biarkan kosong untuk mempertahankan foto lama)</span>
+                            Foto Nota <!--<span class="text-slate-500 font-normal">(biarkan kosong untuk mempertahankan foto lama)</span> -->
                         </label>
 
                         <?php if (!empty($data['foto_nota'])): ?>
